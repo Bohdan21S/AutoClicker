@@ -1,0 +1,11 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE files
+.idea/
+.vscode/
+
+# Project specific
+recorded_actions_*.json
