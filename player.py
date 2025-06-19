@@ -4,6 +4,8 @@ import pyautogui
 import sys
 import logging
 
+from pynput import keyboard
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 class ActionPlayer:
     """Class for playing back recorded actions from a JSON file."""
 
-    STARTUP_DELAY = 3
+    STARTUP_DELAY = 0
 
     # Map pynput special keys to pyautogui keys
     SPECIAL_KEYS_MAP = {
@@ -200,7 +202,7 @@ class ActionPlayer:
         logger.info(f"Playing back {len(self.actions)} actions...")
         print("Move mouse to upper-left corner to abort.")
 
-        print(f"Starting in {self.STARTUP_DELAY} seconds...")
+        print(f"Starting...")
         time.sleep(self.STARTUP_DELAY)
 
         last_action_time = 0
@@ -245,6 +247,7 @@ class ActionPlayer:
             logger.error(f"Error during playback: {str(e)}")
             print(f"Error during playback: {str(e)}")
 
+
 def main():
     player = ActionPlayer()
 
@@ -258,7 +261,23 @@ def main():
         filename = input("Enter the path to the JSON file with recorded actions: ")
 
     if player.load_from_file(filename):
-        input("Press Enter to start playback (or Ctrl+C to cancel)...")
+        # Flag to track if playback has started
+        playback_started = False
+
+        # Function to handle key presses before playback starts
+        def on_pre_playback_key_press(key):
+            nonlocal playback_started
+            if key == keyboard.Key.enter and not playback_started:
+                playback_started = True
+                print("Enter key pressed - starting playback...")
+                return False  # Stop this listener
+
+        # Start a keyboard listener that waits for Enter key
+        print("Press Enter to start playback (or Ctrl+C to cancel)...")
+        with keyboard.Listener(on_press=on_pre_playback_key_press) as listener:
+            listener.join()  # Wait for Enter key
+
+        # Start playback
         player.play()
 
 if __name__ == "__main__":

@@ -196,6 +196,7 @@ class ActionRecorder:
             print(f"Error saving to file: {str(e)}")
             return None
 
+
 def main():
     """Main function to run the recorder."""
     try:
@@ -203,9 +204,26 @@ def main():
         print("Action Recorder")
         print("===============")
         print("This program will record your mouse and keyboard actions.")
-        print("Press Enter to start recording and Esc to stop.")
+        print("Press Enter to start recording.")
+        print("Press Esc to stop recording.")
 
-        input("Press Enter to start recording...")
+        # Flag to track if recording has started
+        recording_started = False
+
+        # Function to handle key presses before recording starts
+        def on_pre_recording_key_press(key):
+            nonlocal recording_started
+            if key == keyboard.Key.enter and not recording_started:
+                recording_started = True
+                print("Enter key pressed - starting recording...")
+                return False  # Stop this listener
+
+        # Start a keyboard listener that waits for Enter key
+        print("Waiting for Enter key press...")
+        with keyboard.Listener(on_press=on_pre_recording_key_press) as listener:
+            listener.join()  # Wait for Enter key
+
+        # Start recording
         if not recorder.start_recording():
             logger.error("Failed to start recording")
             return
